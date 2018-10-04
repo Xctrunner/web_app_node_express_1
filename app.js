@@ -1,6 +1,6 @@
-const express = require('express');
 const chalk = require('chalk');
 const debug = require('debug')('app');
+const express = require('express');
 const morgan = require('morgan');
 const path = require('path');
 
@@ -15,11 +15,22 @@ app.use('/js', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/
 app.use('/js', express.static(path.join(__dirname, 'node_modules/jquery/dist/')));
 app.use('/js', express.static(path.join(__dirname, 'node_modules/popper.js/dist/')));
 
+app.set('views', './src/views');
+app.set('view engine', 'ejs');
+
+// res.send('Hello from my library app');
+// without EJS
+// app.get('/', (req, res) => res.sendFile(path.join(__dirname, '/views/index.html')));
 app.get('/', (req, res) => {
-  // res.send('Hello from my library app');
-  res.sendFile(path.join(__dirname, '/views/index.html'));
+  res.render(
+    'index',
+    {
+      nav: [
+        { link: '/books', title: 'Books' },
+        { link: '/authors', title: 'Authors' }],
+      title: 'Library',
+    },
+  );
 });
 
-app.listen(3002, () => {
-  debug(`listening on port ${chalk.green('3002')}`);
-});
+app.listen(3002, () => debug(`listening on port ${chalk.green('3002')}`));
