@@ -3,8 +3,22 @@ const debug = require('debug')('app');
 const express = require('express');
 const morgan = require('morgan');
 const path = require('path');
+const sql = require('mssql');
 
 const app = express();
+
+const config = {
+  user: '...', // use creds we set up in Azure earlier
+  password: '...',
+  server: '', // e.g. pslibrary.database.windows.net, also created earlier
+  database: '...',
+  options: {
+    encrypt: true, // use if on Azure
+  },
+};
+
+// need to go to firewall settings, add client IP
+sql.connect(config).catch(err => debug(err));
 
 // can use 'tiny' for less info
 app.use(morgan('combined'));

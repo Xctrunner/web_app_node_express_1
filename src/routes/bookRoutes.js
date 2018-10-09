@@ -1,4 +1,6 @@
 const express = require('express');
+const sql = require('mssql');
+// const debug = require('debug')('app:bookRoutes');
 
 const bookRouter = express.Router();
 
@@ -18,28 +20,61 @@ function router(nav) {
     },
   ];
 
+  // with a promise
+  // bookRouter.route('/')
+  //   .get((req, res) => {
+  //     const request = new sql.Request();
+  //     request.query('select * from books')
+  //       .then((result) => {
+  //         debug(result);
+  //         res.render(
+  //           'bookListView',
+  //           {
+  //             nav,
+  //             title: 'Library',
+  //             books: result.recordset,
+  //           },
+  //         );
+  //       });
+  //   });
+
   bookRouter.route('/')
     .get((req, res) => {
-      res.render(
-        'bookListView',
-        {
-          nav,
-          title: 'Library',
-          books,
-        },
-      );
+      (async function query() {
+        const request = new sql.Request();
+        const { recordset } = await request.query('select * from books');
+        // debug(result);
+        res.render(
+          'bookListView',
+          {
+            nav,
+            title: 'Library',
+            books: recordset,
+          },
+        );
+      }());
     });
 
   // with route('/single'), just goes to /books/single
   bookRouter.route('/:id')
+    .all((req, res, next) => {
+      (async function query() {
+        const { id } = req.params;
+        const request = new sql.Request();
+        const { recordset } = await request
+          .input('id', sql.Int, id)
+          .query('select * from books where id = @id');
+        [req.book] = recordset;
+        next();
+      }());
+    })
     .get((req, res) => {
-      const { id } = req.params;
       res.render(
         'bookView',
         {
           nav,
           title: 'Library',
-          book: books[id],
+          book: req.book,
         },
       );
     });
